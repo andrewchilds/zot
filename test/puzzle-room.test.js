@@ -66,7 +66,7 @@ describe("the Puzzle Room", () => {
     walkTo(game, itemSquare(game, "note"));
     turn = game.turn;
     p.use(carried(game, "note"));
-    expect(saidAbout(game, "UP, DOWN, UP")).toBe(true);
+    expect(saidAbout(game, "figure out what is controlled by what code")).toBe(true);
     expect(p.has("note")).toBe(true);
     expect(game.turn).toBe(turn);
 
@@ -107,24 +107,31 @@ describe("the Puzzle Room", () => {
     walkTo(game, gear);
     expect(p.has("gear")).toBe(true);
 
-    // The switches: up down up opens the vault, anything else shuts it
+    // The switches: one pattern of up and down (picked when the game was made)
+    // opens the vault, anything else shuts it. The note doesn't give it away,
+    // so try the patterns until the door opens.
     const vault = square(game, "vaultDoor");
     const gold = itemSquare(game, "gold");
     bump(game, vault);
     expect(saidAbout(game, "A locked vault door.")).toBe(true);
     expect(canReach(game, gold.x, gold.y)).toBe(false);
-    const [first, second, third] = game.currentScene.tilesNamed("switchUp");
-    bump(game, second); // up down up
-    expect(game.currentScene.tileAt(vault.x, vault.y)).toBe("vaultOpen");
+    const switches = game.currentScene.tilesNamed("switchUp"); // all up to begin with
+    expect(switches).toHaveLength(3);
+    const vaultIs = () => game.currentScene.tileAt(vault.x, vault.y);
+    const isUp = (s) => game.currentScene.tileAt(s.x, s.y) === "switchUp";
+    const setSwitches = (ups) => ups.forEach((up, i) => { if (isUp(switches[i]) !== up) bump(game, switches[i]); });
+    // All up last: it's where they start, so trying it first would flip nothing.
+    const patterns = [1, 2, 3, 4, 5, 6, 7, 0].map((n) => [4, 2, 1].map((bit) => !(n & bit)));
+    const combination = patterns.find((ups) => (setSwitches(ups), vaultIs() === "vaultOpen"));
+    expect(combination, "a pattern that opens the vault").toBeTruthy();
     expect(saidAbout(game, "slowly swings open")).toBe(true);
-    bump(game, third); // up down down: shut again
-    expect(game.currentScene.tileAt(vault.x, vault.y)).toBe("vaultDoor");
+    bump(game, switches[0]); // one wrong: shut again
+    expect(vaultIs()).toBe("vaultDoor");
     expect(saidAbout(game, "swings shut and locks")).toBe(true);
-    bump(game, first); // down down down
-    expect(game.currentScene.tileAt(vault.x, vault.y)).toBe("vaultDoor");
-    bump(game, first);
-    bump(game, third); // up down up
-    expect(game.currentScene.tileAt(vault.x, vault.y)).toBe("vaultOpen");
+    bump(game, switches[1]); // still wrong
+    expect(vaultIs()).toBe("vaultDoor");
+    setSwitches(combination);
+    expect(vaultIs()).toBe("vaultOpen");
     const before = p.gold;
     walkTo(game, gold);
     expect(p.gold).toBe(before + 25);

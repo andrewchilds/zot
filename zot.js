@@ -619,7 +619,7 @@ const DEFAULTS = {
 	lighting: 1, // torchlight: bright next to the hero, darker toward the edge of sight (0 = even light). A scene can set its own.
 	dark: 3, // how far the hero sees with no light lit in a scene without daylight (0 = never dark); only a game with a "light" item is ever dark. A scene can set its own.
 	fill: 1, // a faint solid fill behind each square, tinted like the tile (0 = none, 2 = stronger)
-	tileset: true, // true draws pictures instead of letters, colored like the letters would be (see TILESET above); or { image, size, gap, scale, map } for your own sheet
+	tileset: false, // true draws pictures instead of letters, colored like the letters would be (see TILESET above); or { image, size, gap, scale, map } for your own sheet
 	animate: 800, // with pictures: milliseconds per frame for anything with `frames` (0 = hold still)
 	flicker: 200, // milliseconds between flickers of a tile's `glow` (a campfire), and its frames (0 = steady)
 	flash: 50, // with pictures: milliseconds per frame of the hit flash on a square that's just been attacked (0 = none)
