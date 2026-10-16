@@ -2,9 +2,20 @@
 
 ![The meadow in Land of Zot, the example game](screenshots/meadow.png)
 
-Zot is a library for making dungeon crawler games in the browser, and possibly help teach coding. It sits on top of [rot.js](https://ondras.github.io/rot.js/hp/) (map drawing, line of sight, pathfinding), and you describe your game with plain JavaScript objects:
+Zot is a library and web app for making (and playing) dungeon crawler games in the browser, and possibly also teach some coding basics along the way. It sits on top of the [rot.js](https://ondras.github.io/rot.js/hp/) library.
+
+## Quick start
+
+
+You describe your game with plain JavaScript objects:
 
 ```js
+import * as Zot from "./zot.js";
+
+const game = new Zot.Game({ title: "My Dungeon" });
+
+// your game definitions: hero, enemies, items, scenes, etc.
+
 game.enemy("goblin", {
 	symbol: "👺", // or a letter, like "g"
 	color: "lime",
@@ -12,24 +23,6 @@ game.enemy("goblin", {
 	attack: 3,
 	xp: 5,
 });
-```
-
-## Quick start
-
-A game is a page with an empty `<div>`, rot.js and your script:
-
-```html
-<div id="game" class="zot"></div>
-<script src="lib/rot.min.js"></script>
-<script type="module" src="my-game.js"></script>
-```
-
-```js
-import * as Zot from "./zot.js";
-
-const game = new Zot.Game({ title: "My Dungeon" });
-
-// the hero, enemies, items, scenes...
 
 game.start();
 ```
@@ -43,7 +36,7 @@ game.start();
 - `examples/starter.js`: a hero, an enemy and an item.
 - `examples/campfire.js`: the starter with gear, skills, a map square and a quest.
 - `examples/puzzle-room.js`: one room with no fighting and different kinds of switches, locks and puzzles.
-- `examples/land-of-zot.js`: a whole mini-game
+- `examples/land-of-zot.js`: a whole game with an overworld, cottage, dungeon, and boss battle.
 
 ![The editor with Land of Zot's code open beside the running game](screenshots/editor.png)
 
