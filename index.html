@@ -1,0 +1,95 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Zot</title>
+  <link rel="stylesheet" href="editor.css">
+</head>
+<body>
+  <!--
+    The shell around the game: a top bar, a code editor you can show or hide,
+    and the frame the game runs in. This page loads the code of a preset
+    (a file in examples/) into the editor and runs it in the frame, on the
+    standard screen zot.js draws.
+    Save keeps games in this browser, Download hands one over as a file, and
+    Share makes a link that carries the code. The editor completes Zot's
+    names (zot-completions.js) and marks the line a mistake came from. See editor.js.
+  -->
+  <div id="shell">
+    <header class="bar">
+      <a class="brand" href="https://github.com/andrewchilds/zot" target="_blank" rel="noopener" title="Zot on GitHub">Zot</a>
+      <select id="preset" title="Which game to load">
+        <!-- the presets go first, from PRESETS in editor.js -->
+        <option value="save" hidden></option>  <!-- shown, named after the save, while a saved game is loaded -->
+        <option value="link" hidden>From link</option>  <!-- shown while the code came from a share link -->
+      </select>
+      <span id="edited" class="edited" hidden></span>  <!-- while the code differs from the game as loaded or last saved -->
+      <button id="edit" type="button" class="toggle" aria-pressed="false" title="Show or hide the code">Edit</button>
+      <label class="seed" title="The dungeon's seed">Seed <input id="seed" type="text" placeholder="random" maxlength="40" spellcheck="false" autocomplete="off"></label>  <!-- see the seed box in editor.js -->
+      <button id="run" type="button" class="primary" title="Run the code (Ctrl+Enter, or Cmd+Enter on a Mac)">Run</button>
+      <span class="spacer"></span>
+      <button id="save" type="button" title="Keep this code in this browser">Save</button>
+      <button id="load" type="button" title="Open a game saved in this browser">Load</button>
+      <button id="download" type="button" title="Download the code as a .js file">Download</button>
+      <button id="share" type="button" title="Make a link that carries the code">Share</button>
+      <button id="sound" type="button" class="sound" aria-pressed="true" title="Sound on (M in the game)">&#x1F50A;</button>  <!-- mutes the game in the frame; see editor.js -->
+    </header>
+    <div class="panes">
+      <section id="editor" aria-label="The code" class="closed" inert>  <!-- Edit slides it open; see setEditing in editor.js -->
+        <!-- A mistake the frame reported: the message, and the line it came from. See showProblem in editor.js -->
+        <div id="problem" class="problem" role="alert" hidden>
+          <button id="problem-where" type="button" class="where" title="Go to the line"></button>
+          <span id="problem-text" class="text"></span>
+          <button id="problem-close" type="button" class="close" title="Close">&times;</button>
+        </div>
+        <!-- Drag to set the code's width; see the gutter in editor.js -->
+        <div id="gutter" class="gutter" role="separator" aria-orientation="vertical" aria-label="The code's width" tabindex="0" title="Drag to resize the code. Double-click for the default width."></div>
+      </section>
+      <div id="stage">
+        <!-- Code that arrived by link (or a draft whose last run never finished)
+             waits here for a click instead of running on its own -->
+        <iframe id="frame" title="The game" sandbox="allow-scripts"></iframe>
+        <div id="notice" class="notice" hidden>
+          <p id="notice-text"></p>
+          <button id="notice-run" type="button" class="primary">Run</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <dialog id="save-dialog">
+    <form method="dialog">
+      <h2>Save this game</h2>
+      <label>Name <input id="save-name" type="text" required maxlength="60" autocomplete="off"></label>
+      <p class="hint">Saves live in this browser only. Download or Share to keep a copy elsewhere.</p>
+      <menu>
+        <button type="button" value="cancel" class="cancel">Cancel</button>
+        <button type="submit" value="save" class="primary">Save</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <dialog id="load-dialog">
+    <h2>Saved games</h2>
+    <ul id="save-list"></ul>
+    <p id="no-saves" class="hint" hidden>Nothing saved yet. Save keeps the code in this browser.</p>
+    <menu>
+      <button type="button" class="cancel">Close</button>
+    </menu>
+  </dialog>
+
+  <dialog id="share-dialog">
+    <h2>Share this game</h2>
+    <p class="hint">The link carries the whole code. Anyone who opens it sees the code and chooses whether to run it.</p>
+    <textarea id="share-url" readonly rows="4" spellcheck="false"></textarea>
+    <p id="share-note" class="hint"></p>
+    <menu>
+      <button type="button" class="cancel">Close</button>
+      <button type="button" id="share-copy" class="primary">Copy link</button>
+    </menu>
+  </dialog>
+
+  <script type="module" src="editor.js"></script>
+</body>
+</html>

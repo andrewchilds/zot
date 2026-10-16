@@ -1,0 +1,334 @@
+/* zot.css — the default look. Change anything you like!
+   The colors live in variables at the top so they are easy to find. */
+
+:root {
+  --zot-bg: #0e0e16;
+  --zot-panel: #181826;
+  --zot-text: #e6e6f0;
+  --zot-dim: #8a8aa0;
+  --zot-line: #2c2c40;
+  --zot-hp: #e0453f;
+  --zot-mp: #4a7dff;
+  --zot-xp: #f0c419;
+  --zot-good: #7ee08a;
+  --zot-bad: #ff6b6b;
+  --zot-font: "Menlo", "Consolas", "DejaVu Sans Mono", monospace;
+  --zot-title-font: "Pirata One", var(--zot-font);   /* the game's title and the end screen's heading; loaded from Google Fonts in the page's <head> */
+}
+
+body {
+  margin: 0;
+  background: var(--zot-bg);
+  color: var(--zot-text);
+  font-family: var(--zot-font);
+  font-size: 18px;
+}
+
+/* The whole game: side panel flush left, map + log on the right.
+   The page is exactly one screen tall: the side panel is 300px wide and
+   full height, the main area takes the rest, the log is 180px tall and
+   as wide as the main area. */
+.zot {
+  display: flex;
+  height: 100vh;
+  box-sizing: border-box;
+}
+.zot-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: 8px;
+  padding: 12px;
+  box-sizing: border-box;
+}
+/* The map sits in the middle of whatever room is left, at its own size: if it's
+   bigger than the room, the edges are cut off evenly rather than scrolled */
+.zot-map { flex: 1 1 auto; min-height: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+.zot-stage { position: relative; flex: none; }   /* the canvas, and what hovers over it */
+.zot-map canvas { display: block; }
+/* The fx that play over the map without being part of it (see drawFx
+   in zot.js), each a box the size of a square laid over the canvas. A sprite
+   (the "!" over an npc with a quest) is one square of the sheet, and with
+   zot-hover bobs up three sheet pixels and back, a pixel at a time so it stays
+   crisp. Dots are glowing specks that come and go: a campfire's sparks fly up
+   from the box and fade, and a portal's swirl circles in toward its middle
+   (zot-swirl, drawn in faster as it goes); where each goes and how long it
+   takes is set on the dot. */
+.zot-fx-layer { position: absolute; overflow: hidden; pointer-events: none; --zot-unit: 2px; }
+.zot-fx { position: absolute; display: block; }
+.zot-sprite { border: 0; image-rendering: pixelated; }
+.zot-hover { animation: zot-hover 0.9s steps(4, jump-none) infinite alternate; }
+@keyframes zot-hover {
+  from { transform: translateY(0); }
+  to { transform: translateY(calc(-3 * var(--zot-unit))); }
+}
+.zot-dot {
+  position: absolute; display: block;
+  background: var(--zot-dot);
+  box-shadow: 0 0 var(--zot-glow, 0) var(--zot-dot);
+  animation: zot-fly var(--zot-life, 800ms) ease-out forwards;
+}
+@keyframes zot-fly {
+  from { transform: translate(0, 0); opacity: 1; }
+  60% { opacity: 1; }
+  to { transform: translate(var(--zot-dx, 0), var(--zot-dy, -32px)); opacity: 0; }
+}
+/* A swirling dot starts in the middle of its box; rotate then translateX puts
+   it --zot-from out at --zot-angle, and the animation turns it --zot-turn
+   further round while drawing it in to --zot-to. Round, so the turn doesn't show. */
+.zot-swirl {
+  border-radius: 50%;
+  transform: rotate(var(--zot-angle, 0deg)) translateX(var(--zot-from, 0));
+  animation-name: zot-swirl;
+  animation-timing-function: ease-in;
+}
+@keyframes zot-swirl {
+  from { transform: rotate(var(--zot-angle, 0deg)) translateX(var(--zot-from, 0)); opacity: 0; }
+  25% { opacity: 0.85; }
+  to { transform: rotate(calc(var(--zot-angle, 0deg) + var(--zot-turn, 360deg))) translateX(var(--zot-to, 0)); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .zot-hover { animation: none; }
+  .zot-dot { animation-name: zot-fade; }   /* the dots still come and go, but stay put */
+}
+@keyframes zot-fade { from { opacity: 1; } to { opacity: 0; } }
+
+/* Messages */
+.zot-log {
+  flex: 0 0 180px;
+  height: 180px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-y: auto;
+  padding: 6px 10px;
+  background: var(--zot-panel);
+  border: 1px solid var(--zot-line);
+  line-height: 1.4;
+}
+/* A dark scrollbar on the log. Chrome and Safari take the ::-webkit-scrollbar
+   rules (and ignore them if scrollbar-color is set too, so that one is for Firefox only). */
+.zot-log::-webkit-scrollbar { width: 10px; }
+.zot-log::-webkit-scrollbar-track { background: var(--zot-panel); }
+.zot-log::-webkit-scrollbar-thumb { background: #3e3e58; border-radius: 5px; border: 2px solid var(--zot-panel); }
+.zot-log::-webkit-scrollbar-thumb:hover { background: var(--zot-dim); }
+@supports not selector(::-webkit-scrollbar) {
+  .zot-log { scrollbar-color: #3e3e58 var(--zot-panel); }
+}
+.zot-msg { color: var(--zot-dim); }
+.zot-msg-new { color: var(--zot-text); }
+.zot-msg-new.zot-msg-hurt { color: var(--zot-bad); }
+.zot-msg-new.zot-msg-kill { color: #ffb347; }
+.zot-msg-new.zot-msg-good, .zot-msg-new.zot-msg-level { color: var(--zot-good); }
+.zot-msg-new.zot-msg-level { font-weight: bold; }
+.zot-msg-new.zot-msg-item { color: #9ad0ff; }
+.zot-msg-new.zot-msg-warn { color: #ffd166; }
+.zot-msg-new.zot-msg-system { color: #c9b6ff; }
+.zot-msg-new.zot-msg-speech { font-style: italic; }
+.zot-msg-error { color: var(--zot-bad); font-weight: bold; }
+
+/* The red box at the top of the page when something in the game's script goes wrong */
+.zot-error {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  padding: 12px 48px 12px 16px;
+  background: #4a1418;
+  color: #fff;
+  border-bottom: 2px solid var(--zot-bad);
+  font-family: var(--zot-font);
+  font-size: 14px;
+  line-height: 1.4;
+}
+.zot-error b { display: block; white-space: pre-wrap; }
+.zot-error p { margin: 6px 0 0; color: #ffd6d6; }
+.zot-error button {
+  position: absolute; top: 6px; right: 12px;
+  background: none; border: 0; color: #fff; font-size: 22px; cursor: pointer;
+}
+
+/* Anything Zot hides (the MP bar when there is no MP, the pop-up, ...) */
+.zot [hidden] { display: none !important; }
+
+/* Side panel */
+.zot-side {
+  position: relative;
+  flex: 0 0 300px;
+  width: 300px;
+  height: 100vh;
+  box-sizing: border-box;
+  overflow-y: auto;
+  padding: 12px 16px;
+  background: var(--zot-panel);
+  border-right: 1px solid var(--zot-line);
+}
+
+/* The speaker button in the top right corner of the side panel (M also toggles it) */
+.zot-sound {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 2px 8px;
+  font: inherit;
+  font-size: 18px;
+  line-height: 1.3;
+  color: var(--zot-text);
+  background: var(--zot-bg);
+  border: 1px solid var(--zot-line);
+  border-radius: 3px;
+  cursor: pointer;
+}
+.zot-sound:hover { border-color: var(--zot-dim); }
+.zot-sound-off { opacity: 0.5; }
+.zot-title { font-family: var(--zot-title-font); font-size: 34px; font-weight: 400; margin-bottom: 8px; letter-spacing: 1px; }
+.zot-name { font-size: 22px; margin-bottom: 8px; }
+.zot-level { color: var(--zot-xp); font-size: 16px; }
+.zot-side h3 {
+  margin: 16px 0 6px;
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--zot-dim);
+}
+.zot-side ul { list-style: none; margin: 0; padding: 0; }
+.zot-side li { padding: 2px 0; }
+.zot-side small { color: var(--zot-dim); }
+/* Bonus badge: "+3" after a piece of gear, in the inventory, the gear list, a pop-up or a shop */
+.zot-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 5px;
+  font-size: 0.75em;
+  line-height: 1.5;
+  vertical-align: 1px;
+  color: var(--zot-good);
+  border: 1px solid var(--zot-line);
+  border-radius: 3px;
+  background: var(--zot-bg);
+}
+.zot-side kbd, .zot-overlay kbd {
+  display: inline-block;
+  min-width: 1em;
+  padding: 0 4px;
+  margin-right: 4px;
+  text-align: center;
+  border: 1px solid var(--zot-line);
+  border-radius: 3px;
+  background: var(--zot-bg);
+  font-size: 14px;
+}
+
+/* Bars for HP, MP and XP */
+.zot-bar {
+  position: relative;
+  height: 24px;
+  margin: 4px 0;
+  background: var(--zot-bg);
+  border: 1px solid var(--zot-line);
+  overflow: hidden;
+}
+.zot-bar-fill { height: 100%; transition: width 0.15s; }
+.zot-hp .zot-bar-fill { background: var(--zot-hp); }
+.zot-mp .zot-bar-fill { background: var(--zot-mp); }
+.zot-xp .zot-bar-fill { background: var(--zot-xp); }
+.zot-bar span {
+  position: absolute;
+  left: 6px; top: 0;
+  line-height: 24px;
+  font-size: 15px;
+  color: #fff;
+}
+
+/* Near death: Zot puts zot-low-hp on the game when HP is at or below the
+   `lowHp` share of the maximum (a quarter by default). The HP bar pulses
+   and the name and the bar go red. */
+.zot-low-hp .zot-name, .zot-low-hp .zot-hp span { color: var(--zot-bad); }
+.zot-low-hp .zot-hp { border-color: var(--zot-bad); }
+.zot-low-hp .zot-hp .zot-bar-fill { animation: zot-pulse 1s ease-in-out infinite; }
+@keyframes zot-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .zot-low-hp .zot-hp .zot-bar-fill { animation: none; }
+}
+
+/* Stats: one per line, the label on the left and the number on the right */
+.zot-stats { display: flex; flex-direction: column; gap: 3px; margin-top: 12px; }
+.zot-stats > span { display: flex; gap: 6px; color: var(--zot-dim); }
+.zot-stats b { margin-left: auto; color: var(--zot-text); white-space: nowrap; }
+/* With gear on: the base struck through, what gear adds, then the total ("4 +2 6") */
+.zot-stats s { color: var(--zot-dim); font-weight: normal; }
+.zot-stats .zot-badge { font-weight: normal; margin-right: 2px; }
+/* The Weight line, "7/20": red when the hero carries more than they can */
+.zot-stats .zot-overloaded { color: var(--zot-bad); }
+
+/* Equipped: the slot name, then what is in it */
+.zot-slot { display: inline-block; min-width: 4.5em; color: var(--zot-dim); text-transform: capitalize; }
+
+/* Quests: a quest whose goal is met, waiting to be handed in */
+.zot-side li.zot-quest-ready small { color: var(--zot-good); }
+
+.zot-help { margin-top: 18px; font-size: 14px; color: var(--zot-dim); line-height: 1.7; }
+.zot-help span { display: inline-block; margin-right: 10px; white-space: nowrap; }  /* keeps "Wait space" on one line */
+.zot-help b { color: var(--zot-text); }
+
+/* After the end (Zot puts zot-over on the game): the side panel is only to
+   look at. Keys and the speaker button do nothing; R starts over. */
+.zot-over .zot-side { pointer-events: none; opacity: 0.6; }
+
+/* Pop-ups: choosing an item, winning, losing */
+.zot-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+}
+.zot-overlay-box {
+  min-width: 400px;
+  padding: 28px 40px;
+  font-size: 22px;
+  background: var(--zot-panel);
+  border: 2px solid var(--zot-line);
+  text-align: center;
+}
+.zot-overlay h1 { margin: 0 0 12px; font-size: 40px; }
+.zot-prompt h1 { font-size: 26px; }   /* a list (the inventory, a shop) gets a smaller title */
+.zot-overlay p { margin: 0 0 12px; }
+.zot-overlay ul { list-style: none; padding: 0; margin: 12px 0; text-align: left; }
+.zot-overlay li { padding: 3px 0; }
+.zot-overlay kbd { font-size: 17px; padding: 0 6px; margin-right: 8px; }
+.zot-overlay li small { color: var(--zot-dim); }
+.zot-overlay li.zot-disabled { color: var(--zot-dim); opacity: 0.6; }   /* can't afford it, etc. */
+.zot-overlay li.zot-heading {   /* a title line between groups (Equipped, in the item list) */
+  margin-top: 12px;
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--zot-dim);
+}
+.zot-overlay li.zot-columns { display: flex; gap: 40px; align-items: flex-start; }   /* a shop: Buy beside Sell */
+.zot-overlay ul.zot-column { flex: 1 1 auto; min-width: 300px; margin: 0; white-space: nowrap; }   /* grows to fit its longest line */
+.zot-overlay ul.zot-column li.zot-heading { margin-top: 0; }
+.zot-shop .zot-overlay-box { min-width: 800px; max-width: 95vw; }
+.zot-shop #zot-overlay-text { font-style: italic; color: var(--zot-dim); }   /* the shopkeeper's remark */
+/* The Combine screen (c): what the hero carries beside what's on the bench, and what they would make */
+.zot-craft .zot-overlay-box { min-width: 700px; max-width: 95vw; }
+.zot-craft #zot-overlay-text { color: var(--zot-dim); }   /* what the bench would make, or why not */
+.zot-craft-ready #zot-overlay-text { color: var(--zot-good); }
+.zot-craft li.zot-combine { margin-top: 12px; }
+.zot-craft li.zot-combine.zot-disabled { opacity: 0.4; }
+.zot-journal .zot-overlay-box { max-width: min(600px, 95vw); }   /* long quest text wraps */
+.zot-overlay li.zot-done { text-decoration: line-through; }   /* a quest handed in */
+.zot-overlay li.zot-stat { display: flex; justify-content: space-between; gap: 32px; font-size: 18px; }   /* the end screen */
+.zot-overlay-icon { margin: 4px 0 16px; line-height: 0; }   /* the end screen's crown, or whoever killed the hero */
+.zot-overlay-icon canvas { width: 80px; height: 80px; }
+.zot-overlay-icon span { font-size: 80px; line-height: 1; }
+.zot-overlay-hint { color: var(--zot-dim); font-size: 16px; }
+/* The end screen: a long last message wraps instead of stretching the box */
+.zot-win .zot-overlay-box, .zot-lose .zot-overlay-box { max-width: min(560px, 95vw); box-sizing: border-box; }
+.zot-win h1, .zot-lose h1 { font-family: var(--zot-title-font); font-size: 40px; font-weight: 400; letter-spacing: 1px; }
+.zot-win h1 { color: var(--zot-good); }
+.zot-lose h1 { color: var(--zot-bad); }

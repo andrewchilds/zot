@@ -1,0 +1,8 @@
+tiles.png is Kenney's 1-Bit Pack (www.kenney.nl), CC0: white shapes on a
+transparent background that Zot colors as it draws them. build.py fetches
+the pack and copies the sheet out of it.
+
+CC0 means free to use in anything, no credit required. Kenney asks for
+a mention or a donation if you like the art: https://kenney.nl
+
+guide.png is the same sheet, blown up, with each square's column,row.

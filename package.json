@@ -1,0 +1,43 @@
+{
+  "name": "zot",
+  "version": "0.1.0",
+  "description": "Make dungeon crawler games in the browser using JavaScript.",
+  "keywords": [
+    "roguelike",
+    "dungeon-crawler",
+    "game",
+    "rot.js",
+    "browser",
+    "beginner"
+  ],
+  "homepage": "https://github.com/andrewchilds/zot#readme",
+  "bugs": {
+    "url": "https://github.com/andrewchilds/zot/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andrewchilds/zot.git"
+  },
+  "license": "MIT",
+  "author": "Andrew Childs",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "npx serve . --cors",
+    "build:editor": "esbuild lib/codemirror.entry.js --bundle --format=esm --minify --outfile=lib/codemirror.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@codemirror/lang-javascript": "^6.2.5",
+    "@codemirror/theme-one-dark": "^6.1.3",
+    "@vitest/browser-playwright": "^5.0.3",
+    "codemirror": "^6.0.2",
+    "esbuild": "^0.28.2",
+    "playwright": "^1.63.0",
+    "vitest": "^5.0.3"
+  }
+}

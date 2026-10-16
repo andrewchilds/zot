@@ -1,0 +1,8 @@
+{
+  "headers": [
+    {
+      "source": "/zot.js",
+      "headers": [{ "key": "Access-Control-Allow-Origin", "value": "*" }]
+    }
+  ]
+}
